@@ -1,3 +1,3 @@
-# Example Package
+# Local Environment Variables
 
-This is a simple example package. You can use
+This package allows you to specify which environemental varibale you require in you application. It will creata a `.env` file, promt you to populate and add the `.env` file to your `.gitignore` file.
