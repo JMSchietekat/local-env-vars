@@ -2,8 +2,7 @@ import unittest
 import os
 import json
 
-from src.env import EnvironmentManager, EnvironmentException
-
+from src.local_env_vars.env import EnvironmentManager, EnvironmentException
 
 class TestStaticArgsToEmptyDictionary(unittest.TestCase):
     """
