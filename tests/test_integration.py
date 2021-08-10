@@ -4,12 +4,84 @@ import json
 
 from src.local_env_vars.env import EnvironmentManager, EnvironmentException
 
-class TestClassWithNoEnvFile(unittest.TestCase):
-    """
-    Initialise class with no prior .env file.
-    """
+
+class TestIntegration(unittest.TestCase):
 
     def setUp(self):
+        try:
+            os.rename('.gitignore', '.gitignore.bak')
+        except Exception:
+            pass
+
+    def tearDown(self):
+        try:
+            os.remove(".env")
+            os.remove(".gitignore")
+            os.rename('.gitignore.bak', '.gitignore')
+        except Exception:
+            pass
+
+    def test_create_ignore_file_if_it_does_not_exist(self):
+        try:
+            os.remove(".gitignore")
+        except Exception:
+            pass
+
+        EnvironmentManager.dictionary_to_json_file(
+            ".env", {"sql_username": "un", "sql_password": "pwd"})
+        self.envManager = EnvironmentManager("sql_username", "sql_password")
+
+        self.assertTrue(os.path.exists(".gitignore"))
+
+    def test_append_to_empty_ignore_file_when_env_not_ignored(self):
+        with open(".gitignore", 'a'):
+            os.utime(".gitignore", None)
+
+        EnvironmentManager.dictionary_to_json_file(
+            ".env", {"sql_username": "un", "sql_password": "pwd"})
+        self.envManager = EnvironmentManager("sql_username", "sql_password")
+
+        found = False
+
+        with open(".gitignore") as filereader:
+            if '.env' in filereader.read():
+                found = True
+
+        self.assertTrue(found)
+
+    def test_append_to_non_empty_ignore_file_when_env_not_ignored(self):
+        with open(".gitignore", 'w') as filewriter:
+            filewriter.write('*bak')
+
+        EnvironmentManager.dictionary_to_json_file(
+            ".env", {"sql_username": "un", "sql_password": "pwd"})
+        self.envManager = EnvironmentManager("sql_username", "sql_password")
+
+        found = 0
+
+        with open(".gitignore") as filereader:
+            if '.env' in filereader.read():
+                found += 1
+
+        self.assertEqual(found, 1)
+
+    def test_append_to_non_empty_ignore_file_when_env_already_ignored(self):
+        with open(".gitignore", 'w') as filewriter:
+            filewriter.write('.env')
+
+        EnvironmentManager.dictionary_to_json_file(
+            ".env", {"sql_username": "un", "sql_password": "pwd"})
+        self.envManager = EnvironmentManager("sql_username", "sql_password")
+
+        found = 0
+
+        with open(".gitignore") as filereader:
+            if '.env' in filereader.read():
+                found += 1
+
+        self.assertEqual(found, 1)
+
+    def test_create_env_file_with_no_prior(self):
         try:
             os.remove(".env")
         except FileNotFoundError:
@@ -18,57 +90,39 @@ class TestClassWithNoEnvFile(unittest.TestCase):
         self.assertRaises(EnvironmentException, lambda: EnvironmentManager(
             "sql_server_address", "sql_username", "sql_password"))
 
-    def tearDown(self):
-        os.remove(".env")
-
-    def test_env_file_created(self):
-        self.assertEqual(os.path.exists(".env"), True)
-
-    def test_new_env_file_containes_specified_keys(self):
         dictionary = EnvironmentManager.json_file_to_dictionary(".env")
 
         self.assertDictEqual(
             dictionary, {"sql_server_address": "", "sql_username": "", "sql_password": ""})
 
-
-class TestClassWithPopulatedEnvFile(unittest.TestCase):
-    """
-    Initialise class with correct pre exisiting .env file.
-    """
-
-    def setUp(self):
+    def test_persist_env_file_when_exact_keys_are_used(self):
         EnvironmentManager.dictionary_to_json_file(
-            ".env", {"sql_username": "un", "sql_password": "pwd"})
-        self.envManager = EnvironmentManager("sql_username", "sql_password")
+            ".env", {
+                "username": "my_username",
+                "password": "my_password"
+            }
+        )
+        self.envManager = EnvironmentManager("username", "password")
 
-    def tearDown(self):
-        os.remove(self.envManager._env_file)
-
-    def test_class_dictionary_equals_env_file_content(self):
         self.assertDictEqual(self.envManager.dictionary, {
-                             "sql_username": "un", "sql_password": "pwd"})
+            "username": "my_username",
+            "password": "my_password"
+        }
+        )
 
-
-class TestClassWithUnpopulatedEnvFile(unittest.TestCase):
-    """
-    Initialise class with pre exisiting .env file that has an empty value.
-    """
-
-    def test_that_exception_is_thrown(self):
+    def test_exception_is_thrown_with_unpopulated_values(self):
         EnvironmentManager.dictionary_to_json_file(
-            ".env", {"sql_username": "un", "sql_password": ""})
+            ".env",
+            {
+                "username": "my_username",
+                "password": ""
+            }
+        )
 
         self.assertRaises(EnvironmentException, lambda: EnvironmentManager(
-            "sql_username", "sql_password"))
+            "username", "password"))
 
-        os.remove(".env")
-
-class TestClassWithAddedKeysOnInit(unittest.TestCase):
-    """
-    Initialise class with more keys than in .env file.
-    """
-
-    def setUp(self):
+    def test_added_keys_on_init_to_be_added_to_env_file(self):
         EnvironmentManager.dictionary_to_json_file(
             ".env",
             {
@@ -82,10 +136,6 @@ class TestClassWithAddedKeysOnInit(unittest.TestCase):
                               "username", "password", "ssh_key")
                           )
 
-    def tearDown(self):
-        os.remove(".env")
-
-    def test_env_file_contains_added_key(self):
         readline = ""
         with open(".env", "r") as filereader:
             readline = filereader.read()
@@ -93,13 +143,7 @@ class TestClassWithAddedKeysOnInit(unittest.TestCase):
         self.assertEqual(
             readline, '{"username": "my_username", "password": "my_password", "ssh_key": ""}')
 
-
-class TestClassWithRemovedKeysOnInit(unittest.TestCase):
-    """
-    Initialise class with less keys than in .env file.
-    """
-
-    def setUp(self):
+    def test_removed_keys_on_init_to_be_removed_from_env_file(self):
         EnvironmentManager.dictionary_to_json_file(
             ".env",
             {
@@ -111,21 +155,12 @@ class TestClassWithRemovedKeysOnInit(unittest.TestCase):
         self.assertRaises(EnvironmentException,
                           lambda: EnvironmentManager("username"))
 
-    def tearDown(self):
-        os.remove(".env")
-
-    def test_env_file_contains_does_not_contain_removed_key(self):
         readline = ""
+
         with open(".env", "r") as filereader:
             readline = filereader.read()
 
         self.assertEqual(readline, '{"username": "my_username"}')
-
-
-class TestClassWithNoInputArgs(unittest.TestCase):
-    """
-    Initialise class with no input arguments
-    """
 
     def test_empty_initialisation_to_throw_assertion_error(self):
         self.assertRaises(AssertionError, lambda: EnvironmentManager())

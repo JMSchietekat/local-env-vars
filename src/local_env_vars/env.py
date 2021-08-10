@@ -17,11 +17,11 @@ class EnvironmentManager():
             ignore_found = [False]
             with open(self._ignore_file, "r") as filereader:
                 ignore_found = [line for line in filereader.readlines(
-                ) if line == self._env_file + '\n']
+                ) if line == self._env_file]
 
             if(not ignore_found):
                 with open(self._ignore_file, "a") as filewriter:
-                    filewriter.write(self._env_file + '\n')
+                    filewriter.write('\n' + self._env_file)
 
         # Create env file if it does not exist.
         if(not EnvironmentManager.file_exists(self._env_file)):
