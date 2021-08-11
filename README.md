@@ -16,7 +16,7 @@ connection_string = "Driver={{SQL Server}};Server={0}; Database=AdventureWorks;u
     )
 ```
 
-Running this code for the first time will create an `.env` and add `.evn` to the project `.gitignore` file. 
+Running this code for the first time will create an `.env` and add `.env` to the project `.gitignore` file. 
 
 The `.env` file will have the following content. It will throw an exception reporting that you must provide values to the keys.
 
