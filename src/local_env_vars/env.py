@@ -2,7 +2,7 @@ import os.path
 import json
 
 
-class EnvironmentManager():
+class LocalEnvVars():
 
     def __init__(self, *argv):
         assert len(argv) > 0, "Supply at least 1 argument."
@@ -10,7 +10,7 @@ class EnvironmentManager():
         self._env_file = '.env'
         self._ignore_file = '.gitignore'
 
-        if(not EnvironmentManager.file_exists(self._ignore_file)):
+        if(not LocalEnvVars.file_exists(self._ignore_file)):
             with open(self._ignore_file, "w") as filewriter:
                 filewriter.write(self._env_file)
         else:
@@ -24,28 +24,28 @@ class EnvironmentManager():
                     filewriter.write('\n' + self._env_file)
 
         # Create env file if it does not exist.
-        if(not EnvironmentManager.file_exists(self._env_file)):
+        if(not LocalEnvVars.file_exists(self._env_file)):
             self.create_file(self._env_file)
-            EnvironmentManager.dictionary_to_json_file(
+            LocalEnvVars.dictionary_to_json_file(
                 self._env_file, self.args_to_empty_dictionary(*argv))
-            raise EnvironmentException(
+            raise LocalEnvVarsException(
                 "New .env file created with keys. Add their values and try again.")
 
-        self.dictionary = EnvironmentManager.json_file_to_dictionary(
+        self.vars = LocalEnvVars.json_file_to_dictionary(
             self._env_file)
 
         # Check that application and env file's keys match, otherwise update env file.
-        if(not EnvironmentManager.dict_has_equal_keys(EnvironmentManager.args_to_empty_dictionary(*argv), self.dictionary)):
-            self.dictionary = EnvironmentManager.merge_dictionary_with_keys(
-                self.dictionary, *argv)
-            EnvironmentManager.dictionary_to_json_file(
-                self._env_file, self.dictionary)
-            raise EnvironmentException(
+        if(not LocalEnvVars.dict_has_equal_keys(LocalEnvVars.args_to_empty_dictionary(*argv), self.vars)):
+            self.vars = LocalEnvVars.merge_dictionary_with_keys(
+                self.vars, *argv)
+            LocalEnvVars.dictionary_to_json_file(
+                self._env_file, self.vars)
+            raise LocalEnvVarsException(
                 "Environment keys differ. Keys will be added/removed. Add the values and try again.")
 
         # Check that all variables are populated.
-        if(not EnvironmentManager.dict_has_values(self.dictionary)):
-            raise EnvironmentException(
+        if(not LocalEnvVars.dict_has_values(self.vars)):
+            raise LocalEnvVarsException(
                 "Environment keys are set up. Some values are missing, please add them and try again.")
 
     @staticmethod
@@ -107,7 +107,7 @@ class EnvironmentManager():
         return dictionary
 
 
-class EnvironmentException(Exception):
+class LocalEnvVarsException(Exception):
     """
     Exception raised for an environment setup issue.
     """
