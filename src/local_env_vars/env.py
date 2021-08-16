@@ -17,7 +17,7 @@ class LocalEnvVars():
             ignore_found = [False]
             with open(self._ignore_file, "r") as filereader:
                 ignore_found = [line for line in filereader.readlines(
-                ) if line == self._env_file]
+                ) if line == self._env_file or line == self._env_file + '\n']
 
             if(not ignore_found):
                 with open(self._ignore_file, "a") as filewriter:

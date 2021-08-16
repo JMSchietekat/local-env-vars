@@ -7,12 +7,17 @@ The functionality described is in line with the guidelines set out in the [The T
 ## Implementation
 
 ```python
+# import
 from local_env_vars.env import LocalEnvVars
 
+# setup
 env = LocalEnvVars("sql_server_address", "sql_username", "sql_password")
 
+# sample usage
 connection_string = "Driver={{SQL Server}};Server={0}; Database=AdventureWorks;uid={1};pwd={2}".format(
-        env.vars['sql_server_address'], env.vars['sql_username'], env.vars['sql_password']
+        env.vars['sql_server_address'], 
+		env.vars['sql_username'], 
+		env.vars['sql_password']
     )
 ```
 
