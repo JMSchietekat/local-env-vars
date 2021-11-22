@@ -331,7 +331,7 @@ class TestStaticJsonFileToDictionary(unittest.TestCase):
             filewriter.write('{"one":"1","two":"22", "three":""')
 
         self.assertRaises(
-            Exception, lambda: LocalEnvVars.json_file_to_dictionary(self.filename))
+            LocalEnvVarsException, lambda: LocalEnvVars.json_file_to_dictionary(self.filename))
 
 
 class TestStaticMergeDictionaryWithKeys(unittest.TestCase):
