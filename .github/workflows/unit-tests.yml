@@ -20,10 +20,7 @@ jobs:
           python-version: 3.6
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+        run: python -m pip install --upgrade pip
       
       - name: Run tests with unittest
-        run: |
-          python -m unittest
+        run: python -m unittest
