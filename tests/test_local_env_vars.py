@@ -67,19 +67,31 @@ class TestIntegration(unittest.TestCase):
 
     def test_append_to_non_empty_ignore_file_when_env_already_ignored(self):
         with open(".gitignore", 'w') as filewriter:
+            filewriter.write('.env\n')
+            filewriter.write('.vscode\n')
+            filewriter.write('output\n')
+
+        LocalEnvVars.dictionary_to_json_file(
+            ".env", {"sql_username": "un", "sql_password": "pwd"})
+        self.envManager = LocalEnvVars("sql_username", "sql_password")
+
+        with open(".gitignore", 'r') as filereader:
+            self.assertEqual(
+                [True], [True for line in filereader.readlines() if line == '.env\n' or line == '.env'])
+
+    def test_append_to_non_empty_ignore_file_when_env_already_ignored_without_ending_with_newline(self):
+        with open(".gitignore", 'w') as filewriter:
+            filewriter.write('.vscode\n')
+            filewriter.write('output\n')
             filewriter.write('.env')
 
         LocalEnvVars.dictionary_to_json_file(
             ".env", {"sql_username": "un", "sql_password": "pwd"})
         self.envManager = LocalEnvVars("sql_username", "sql_password")
 
-        found = 0
-
-        with open(".gitignore") as filereader:
-            if '.env' in filereader.read():
-                found += 1
-
-        self.assertEqual(found, 1)
+        with open(".gitignore", 'r') as filereader:
+            self.assertEqual(
+                [True], [True for line in filereader.readlines() if line == '.env\n' or line == '.env'])
 
     def test_create_env_file_with_no_prior(self):
         try:
@@ -164,6 +176,7 @@ class TestIntegration(unittest.TestCase):
 
     def test_empty_initialisation_to_throw_assertion_error(self):
         self.assertRaises(AssertionError, lambda: LocalEnvVars())
+
 
 class TestStaticArgsToEmptyDictionary(unittest.TestCase):
     """
@@ -318,7 +331,7 @@ class TestStaticJsonFileToDictionary(unittest.TestCase):
             filewriter.write('{"one":"1","two":"22", "three":""')
 
         self.assertRaises(
-            Exception, lambda: LocalEnvVars.json_file_to_dictionary(self.filename))
+            LocalEnvVarsException, lambda: LocalEnvVars.json_file_to_dictionary(self.filename))
 
 
 class TestStaticMergeDictionaryWithKeys(unittest.TestCase):

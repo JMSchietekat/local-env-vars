@@ -17,7 +17,7 @@ class LocalEnvVars():
             ignore_found = [False]
             with open(self._ignore_file, "r") as filereader:
                 ignore_found = [line for line in filereader.readlines(
-                ) if line == self._env_file]
+                ) if line == self._env_file or line == self._env_file + '\n']
 
             if(not ignore_found):
                 with open(self._ignore_file, "a") as filewriter:
@@ -32,7 +32,7 @@ class LocalEnvVars():
                 "New .env file created with keys. Add their values and try again.")
 
         self.vars = LocalEnvVars.json_file_to_dictionary(
-            self._env_file)
+                self._env_file)
 
         # Check that application and env file's keys match, otherwise update env file.
         if(not LocalEnvVars.dict_has_equal_keys(LocalEnvVars.args_to_empty_dictionary(*argv), self.vars)):
@@ -90,8 +90,11 @@ class LocalEnvVars():
     def json_file_to_dictionary(filename):
         dictionary = {}
 
-        with open(filename, 'r') as filereader:
-            dictionary = json.load(filereader)
+        try:
+            with open(filename, 'r') as filereader:
+                dictionary = json.load(filereader)
+        except Exception as e:
+            raise LocalEnvVarsException("Environment file must be valid JSON, see error: {0}".format(e))        
 
         return dictionary
 

@@ -1,0 +1,26 @@
+name: Unit Tests
+on:
+  pull_request:
+    branches: 
+    - master 
+    - develop
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2.3.4
+
+      - name: Install Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip
+      
+      - name: Run tests with unittest
+        run: python -m unittest

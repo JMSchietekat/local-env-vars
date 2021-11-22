@@ -1,3 +1,3 @@
-rmdir dist -y
+rmdir dist
 py -m build
 twine upload dist/*
